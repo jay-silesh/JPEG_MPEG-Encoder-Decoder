@@ -1,0 +1,240 @@
+import java.awt.*;
+import java.awt.image.*;
+import java.io.*;
+import javax.swing.*;
+
+
+public class imageReader {
+
+   static int sub_blocks[][][];
+   static int divide_size;
+   static JFrame frame;
+   static JLabel label,label2;
+   static int width,height;
+   static BufferedImage img;
+   
+   public static void main(String[] args) {
+   	
+
+/*	String fileName = args[0];
+   	int width = Integer.parseInt(args[1]);
+	int height = Integer.parseInt(args[2]);
+*/
+	   
+	String fileName="image1.rgb";
+	width=640;
+	height=480;
+	divide_size=(width*height)/64;
+	sub_blocks= new int[divide_size][8][8];
+	
+	img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+	BufferedImage img2 = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+	
+	int[][][] sub_blocks_DCT=new int[divide_size][8][8];
+	int[][][] sub_blocks_iDCT=new int[divide_size][8][8];
+	int[] sub_blocks_1d=new int[height*width];
+	
+   
+
+    try {
+	    File file = new File(fileName);
+	    InputStream is = new FileInputStream(file);
+
+	    long len = file.length();
+	    byte[] bytes = new byte[(int)len];
+	    
+	     
+	    int offset = 0;
+        int numRead = 0;
+        while (offset < bytes.length && (numRead=is.read(bytes, offset, bytes.length-offset)) >= 0) {
+            offset += numRead;
+        }
+    
+    		
+        
+    	int ind = 0;
+		for(int y = 0; y < height; y++){
+	
+			for(int x = 0; x < width; x++){
+		 
+				byte a = 0;
+				byte r = bytes[ind];
+				byte g = bytes[ind+height*width];
+				byte b = bytes[ind+height*width*2]; 
+				
+				int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
+				//int pix = ((a << 24) + (r << 16) + (g << 8) + b);
+				img.setRGB(x,y,pix);
+				ind++;
+			}
+		}
+		
+		
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    
+    divide_image(img);
+    calculate_dct(sub_blocks_DCT);
+    calculate_idct(sub_blocks_DCT,sub_blocks_iDCT);
+        
+    
+    // Use a label to display the image
+    frame = new JFrame();
+    label = new JLabel(new ImageIcon(img));
+    frame.getContentPane().add(label, BorderLayout.WEST);
+    frame.pack();
+    frame.setVisible(true);
+  
+    convert_3d_1d(sub_blocks_iDCT,sub_blocks_1d);
+    array_to_img(sub_blocks_1d,img2);
+    
+    label2 = new JLabel(new ImageIcon(img2));
+    frame.getContentPane().add(label2, BorderLayout.EAST);
+    frame.pack();
+    frame.setVisible(true);
+    
+ }
+  
+   
+
+static void calculate_idct(int[][][] sub_blocks_DCT, int[][][] sub_blocks_iDCT) {
+	
+	   int sum_y=0,sum_x=0;
+	   double temp;
+	   //x is equivalent to i
+	   //y is equivalent to j
+	   for(int q=0;q<divide_size;q++)
+	   {
+		   for(int j=0;j<8;j++)
+		   {
+			   for(int i=0;i<8;i++)
+			   {
+				   sum_y=0;
+				   for(int y=0;y<8;y++)
+				   {
+					   sum_x=0;
+					   for(int x=0;x<8;x++)
+					   {
+						   if(i==0 || j==0 )
+							   temp=(1/Math.sqrt(2))*(1/4);
+						   else
+							   temp=(1/4);  
+						   
+						  sum_x+=(temp)*(sub_blocks_DCT[q][y][x])*
+								 ((Math.cos((((2*x)+1)*(Math.PI*i)) /16)))*
+								 ((Math.cos((((2*y)+1) *(Math.PI*j)) /16)));
+						   
+						   
+					   }
+					   sum_y+=sum_x;
+				   }
+				   sub_blocks_iDCT[q][j][i]=(1/4)*sum_y;
+				   		   
+			   }
+		   }
+		   
+		   
+	   }
+	   
+	   
+	   
+	   
+}
+
+static void convert_3d_1d(int[][][] sub_blocks_DCT,int[] sub_blocks_1d) {
+	
+	   int count=0;
+	   for(int q=0;q<divide_size;q++)
+	   {
+		   for(int y=0;y<8;y++)
+		   {
+			   for(int x=0;x<8;x++)
+			   {
+				   sub_blocks_1d[count++]=sub_blocks_DCT[q][y][x];
+			   }
+		   }
+	   }
+	
+}
+
+static void array_to_img(int[] sub_blocks_1d,BufferedImage img2) {
+	
+	//BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+	int count=0;
+	for(int y = 0; y < height; y++){
+		
+		for(int x = 0; x < width; x++){
+	 
+			img2.setRGB(x,y,sub_blocks_1d[count++]);
+			
+		}
+	}
+	/*label2 = new JLabel(new ImageIcon(img2));
+    frame.getContentPane().add(label2, BorderLayout.WEST);
+    frame.pack();
+    frame.setVisible(true);
+	*/
+	   
+}
+
+static void calculate_dct(int[][][] sub_blocks_DCT) {
+	
+	   int sum_y=0,sum_x=0;
+	   double temp;
+	   //x is equivalent to i
+	   //y is equivalent to j
+	   for(int q=0;q<divide_size;q++)
+	   {
+		   for(int j=0;j<8;j++)
+		   {
+			  for(int i=0;i<8;i++)
+			  {
+					
+				  	sum_y=0;
+				  	for(int y=0;y<8;y++)
+					{
+				  		sum_x=0;
+						for(int x=0;x<8;x++)
+						{
+							sum_x+=sub_blocks[q][y][x]*
+									(Math.cos((((2*x)+1) *(Math.PI*i)) /16))*
+									(Math.cos((((2*y)+1) *(Math.PI*j)) /16));
+						}
+						sum_y+=sum_x;
+					}		   
+					   
+					if(i==0 || j==0 )
+						   temp=(1/Math.sqrt(2))*(1/4);
+					   else
+						   temp=(1/4);
+					   sub_blocks_DCT[q][j][i]=(int) (sum_y*temp);
+				   
+			   }
+		   }	   
+	   }
+	   
+	   
+  }
+
+   static void divide_image(BufferedImage img)
+   {
+	  int x=0,y=0;
+	  for(int q=0;q<divide_size;q++)
+	   {  
+		  int temp_y=y+8;
+		  for(int i=0; (i < temp_y)&& (y < height) ; y++,i++)
+	   	  {
+			  int temp_x=x+8; 
+			   for(int j=0; (j <temp_x) && (x<width);x++,j++)
+			   {
+				   sub_blocks[q][i][j]=img.getRGB(x,y);
+			   }
+		   }
+		  x=0;
+	   }
+   }
+   
+}
