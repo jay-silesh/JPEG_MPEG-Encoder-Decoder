@@ -1,6 +1,8 @@
 import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
+import java.util.Map;
+
 import javax.swing.*;
 import javax.swing.plaf.SliderUI;
 
@@ -14,6 +16,9 @@ public class imageReader {
    static BufferedImage img;
    static int flag=0;
    
+   static int [][]Mapping;//=new int[2][64];
+   static int []Bit_Mapping;//=new int[2][64];
+   
    public static void main(String[] args) {
    	
 
@@ -22,12 +27,13 @@ public class imageReader {
 	int height = Integer.parseInt(args[2]);
 	long sleep_time=
 */
-	int quantization_number=3;
-	int case_no=1;
+	int quantization_number=0;
+	int case_no=3;
 	long sleep_time=1;
 	String fileName="nimage1.rgb";
 	width=352;
 	height=288;
+	
 	
 	/*String fileName="image1.rgb";
 	width=640;
@@ -51,11 +57,6 @@ public class imageReader {
 	
 	img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 	BufferedImage img2 = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-	BufferedImage img3 = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-	
-	BufferedImage img_ro = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-	BufferedImage img_go = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-	BufferedImage img_bo = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
 	double[][] ro=new double[height][width];
 	double[][] go=new double[height][width];
@@ -124,25 +125,155 @@ public class imageReader {
     calculate_dct(sub_blocks_bo,sub_blocks_b_DCT);
     quantize_image(sub_blocks_r_DCT,sub_blocks_g_DCT,sub_blocks_b_DCT,quantization_number);
     
+   
     
-    dequantize_image(sub_blocks_r_DCT,sub_blocks_g_DCT,sub_blocks_b_DCT,quantization_number);
-    calculate_idct(sub_blocks_r_DCT,sub_blocks_r_iDCT);
-    calculate_idct(sub_blocks_g_DCT,sub_blocks_g_iDCT);
-    calculate_idct(sub_blocks_b_DCT,sub_blocks_b_iDCT);
- 
-    merge_3darrays(sub_blocks_r_iDCT,sub_blocks_g_iDCT,sub_blocks_b_iDCT,sub_blocks_iDCT);
-       
-	label = new JLabel(new ImageIcon(img));
-	frame.getContentPane().add(label, BorderLayout.WEST);
-    frame.pack();
-    frame.setVisible(true);
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-  
-    sequential_decoding(sub_blocks_iDCT,img2,10);
     
-
+    if(case_no==1)
+    {
+    	
+    	
+    	dequantize_image(sub_blocks_r_DCT,sub_blocks_g_DCT,sub_blocks_b_DCT,quantization_number);
+        calculate_idct(sub_blocks_r_DCT,sub_blocks_r_iDCT);
+        calculate_idct(sub_blocks_g_DCT,sub_blocks_g_iDCT);
+        calculate_idct(sub_blocks_b_DCT,sub_blocks_b_iDCT);
+        merge_3darrays(sub_blocks_r_iDCT,sub_blocks_g_iDCT,sub_blocks_b_iDCT,sub_blocks_iDCT);
+        display_original_image();
+       sequential_decoding(sub_blocks_iDCT,img2,sleep_time,case_no);
+    }
+    else if(case_no==2)
+    {
+    	map_coordinates();
+    	display_original_image();
+    	double[][][] sub_blocks2_r=new double[divide_size][8][8];
+       	double[][][] sub_blocks2_g=new double[divide_size][8][8];
+       	double[][][] sub_blocks2_b=new double[divide_size][8][8];
+    
+       	label2 = new JLabel(new ImageIcon(img2));
+   	  	frame.getContentPane().add(label2, BorderLayout.EAST);
+   	  	frame.pack();
+        
+        for(int number=0;number<64;number++)
+        {
+        	double[][][] sub_blocks2_r_q=new double[divide_size][8][8];
+           	double[][][] sub_blocks2_g_q=new double[divide_size][8][8];
+           	double[][][] sub_blocks2_b_q=new double[divide_size][8][8];
+        	for(int q=0;q<divide_size;q++)
+        	{
+        		sub_blocks2_r[q][Mapping[1][number]][Mapping[0][number]]=sub_blocks_r_DCT[q][Mapping[1][number]][Mapping[0][number]];
+           		sub_blocks2_g[q][Mapping[1][number]][Mapping[0][number]]=sub_blocks_g_DCT[q][Mapping[1][number]][Mapping[0][number]];
+           		sub_blocks2_b[q][Mapping[1][number]][Mapping[0][number]]=sub_blocks_b_DCT[q][Mapping[1][number]][Mapping[0][number]];
+        	}
+        	dequantize(sub_blocks2_r,sub_blocks2_r_q,quantization_number);
+        	dequantize(sub_blocks2_g,sub_blocks2_g_q,quantization_number);
+        	dequantize(sub_blocks2_b,sub_blocks2_b_q,quantization_number);
+        	
+        	calculate_idct(sub_blocks2_r_q,sub_blocks_r_iDCT);
+            calculate_idct(sub_blocks2_g_q,sub_blocks_g_iDCT);
+            calculate_idct(sub_blocks2_b_q,sub_blocks_b_iDCT);
+            merge_3darrays(sub_blocks_r_iDCT,sub_blocks_g_iDCT,sub_blocks_b_iDCT,sub_blocks_iDCT);
+            
+            array3d_to_img(sub_blocks_iDCT,img2);
+            label2.setIcon(new ImageIcon(img2));
+            try {
+				Thread.sleep(sleep_time);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+          
+        }
+    	
+    	
+    }
+    else if(case_no==3)
+    {
+    	bit_mapping();	
+        
+    	
+    }
+    else
+    {
+    	System.out.println("\nWong Mode number entered");
+    }
+    
 }
   
+
+static void bit_mapping() {
+
+	Bit_Mapping=new int[]{
+			0x80000000,
+			0xC0000000,
+			0xE0000000,
+			0xF0000000,
+			0xF8000000,
+			0xFC000000,
+			0xFE000000,
+			0xFF000000,
+			0xFF800000,
+			0xFFC00000,
+			0xFFE00000,
+			0xFFF00000,
+			0xFFF80000,
+			0xFFFC0000,
+			0xFFFE0000,
+			0xFFFF0000,
+			0xFFFF8000,
+			0xFFFFC000,
+			0xFFFFE000,
+			0xFFFFF000,
+			0xFFFFF800,
+			0xFFFFFC00,
+			0xFFFFFE00,
+			0xFFFFFF00,
+			0xFFFFFF80,
+			0xFFFFFFC0,
+			0xFFFFFFE0,
+			0xFFFFFFF0,
+			0xFFFFFFF8,
+			0xFFFFFFFC,
+			0xFFFFFFFE,
+			0xFFFFFFFF
+	};
+	
+	
+	
+	
+	
+}
+
+
+static void display_original_image() {
+	// TODO Auto-generated method stub
+	 label = new JLabel(new ImageIcon(img));
+		frame.getContentPane().add(label, BorderLayout.WEST);
+	    frame.setVisible(true);
+	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    frame.pack();
+	    
+}
+
+
+
+
+static void dequantize(double[][][] sub_blocks2_r,
+		double[][][] sub_blocks2_r_q, int qn) {
+	// TODO Auto-generated method stub
+	int q,x,y;
+	for(q=0;q<divide_size;q++)
+	{
+		for(y=0;y<8;y++)
+		{
+			for(x=0;x<8;x++)
+			{
+				sub_blocks2_r_q[q][y][x]=( (sub_blocks2_r[q][y][x]*(Math.pow(2, qn))));
+			}
+		}
+	}
+}
+
+
+
 
 static void quantize_image(double[][][] sub_blocks_r_DCT,
 		double[][][] sub_blocks_g_DCT, double[][][] sub_blocks_b_DCT, int i) {
@@ -162,9 +293,12 @@ static void dequantize_image(double[][][] sub_blocks_r_iDCT,
 
 
 static void sequential_decoding(double[][][] sub_blocks_DCT,
-		BufferedImage img2, long sleep_time) {
+		BufferedImage img2, long sleep_time,int case_number) {
 	
-	array3d_to_img(sub_blocks_DCT,img2,sleep_time);    							
+	if(case_number==1)
+		array3d_to_img(sub_blocks_DCT,img2,sleep_time);
+	
+		
 }
 
 
@@ -234,9 +368,10 @@ static void array3d_to_img(double[][][] sub_blocks_DCT,BufferedImage img_temp,lo
 
 static void array3d_to_img(double[][][] sub_blocks_DCT,BufferedImage img_temp)
 {
-	int xo=0,yo=0,i=0,j=0,x=0,y=0,q=0;
+	  int xo=0,yo=0,i=0,j=0,x=0,y=0,q=0;
 	  int hn=height/8;
 	  int wn=width/8;
+	  
 	  for(j=0;j<hn;j++)
 	  {
 		  for(i=0;i<wn;i++)
@@ -246,30 +381,11 @@ static void array3d_to_img(double[][][] sub_blocks_DCT,BufferedImage img_temp)
 				  for(x=0,xo=(i*8);(x<8)&&(xo<width);xo++,x++)
 				  {
 					  img_temp.setRGB(xo, yo,(int) sub_blocks_DCT[q][y][x]);
-					  //HERE
 				  }
 			  }
 			  q++;
 		  }
 	  }
-	  
-	  if(flag==0) 
-	  {
-		//  label2.setIcon(new ImageIcon(img_temp));
-		  label2 = new JLabel(new ImageIcon(img_temp));
-		  frame.getContentPane().add(label2, BorderLayout.CENTER);
-		  
-	  }
-	  else
-	  {
-		  label3 = new JLabel(new ImageIcon(img_temp));
-		  frame.getContentPane().add(label3, BorderLayout.EAST);  
-	  }
-		 flag++;
-	  
-	
-	   frame.pack();  
-
 }
 
 
@@ -432,7 +548,49 @@ static void calculate_idct(double[][][] sub_blocks_DCT, double[][][] sub_blocks_
 	    }
 	    c[0]=1/Math.sqrt(2.0);
 	}
-
+	static void map_coordinates() {
+		// TODO Auto-generated method stub
+		Mapping = new int[][]
+		        {
+				{
+		        //X Part..
+		        //0,1,2,3,4,5,6,7
+		          0,0,1,2,1,0,0,1,
+		          2,3,4,3,2,1,0,0,
+		          1,2,3,4,5,6,5,4,
+		          3,2,1,0,0,1,2,3,
+		          4,5,6,7,7,6,5,4,
+		          3,2,1,2,3,4,5,6,
+		          7,7,6,5,4,3,4,5,
+		          6,7,7,6,5,6,7,7
+		        },
+		        { 
+		        //Y	part of the martix..
+		        //0,1,2,3,4,5,6,7 
+		          0,1,0,0,1,2,3,2,
+		          1,0,0,1,2,3,4,5,
+		          4,3,2,1,0,0,1,2,
+		          3,4,5,6,7,6,5,4,
+		          3,2,1,0,1,2,3,4,
+		          5,6,7,7,6,5,4,3,
+		          2,3,4,5,6,7,7,6,
+		          5,4,5,6,7,7,6,7	        
+		        }
+		        
+		         };
+		
+		
+	}
+	
+	
+	
+	
+	
+	
+	
 }
+
+
+
 
 
