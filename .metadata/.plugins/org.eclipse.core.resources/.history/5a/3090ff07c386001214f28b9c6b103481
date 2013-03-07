@@ -62,8 +62,8 @@ public class imageReader {
 	double[][] go=new double[height][width];
 	double[][] bo=new double[height][width];
 	
-//	double[][][] sub_blocks_DCT=new double[divide_size][8][8];
-//	double[][][] sub_blocks_DCT2=new double[divide_size][8][8];
+	double[][][] sub_blocks_DCT=new double[divide_size][8][8];
+	double[][][] sub_blocks_DCT2=new double[divide_size][8][8];
 	double[][][] sub_blocks_iDCT=new double[divide_size][8][8];
 	
 	
@@ -228,7 +228,6 @@ public class imageReader {
             
             array3d_to_img(sub_blocks_iDCT,img2);
             label2.setIcon(new ImageIcon(img2));
-            
             try {
 				Thread.sleep(sleep_time);
 			} catch (InterruptedException e) {
@@ -247,7 +246,6 @@ public class imageReader {
     
 }
   
-   
 
 static void bit_mapping() {
 

@@ -28,8 +28,8 @@ public class imageReader {
 	long sleep_time=
 */
 	int quantization_number=0;
-	int case_no=2;
-	long sleep_time=0;
+	int case_no=3;
+	long sleep_time=1;
 	String fileName="nimage1.rgb";
 	width=352;
 	height=288;
@@ -62,8 +62,8 @@ public class imageReader {
 	double[][] go=new double[height][width];
 	double[][] bo=new double[height][width];
 	
-//	double[][][] sub_blocks_DCT=new double[divide_size][8][8];
-//	double[][][] sub_blocks_DCT2=new double[divide_size][8][8];
+	double[][][] sub_blocks_DCT=new double[divide_size][8][8];
+	double[][][] sub_blocks_DCT2=new double[divide_size][8][8];
 	double[][][] sub_blocks_iDCT=new double[divide_size][8][8];
 	
 	
@@ -211,12 +211,12 @@ public class imageReader {
     					sub_blocks2_r[q][y][x]=((int)sub_blocks_r_DCT[q][y][x]) & (Bit_Mapping[bit]);
     					sub_blocks2_g[q][y][x]=((int)sub_blocks_g_DCT[q][y][x]) & (Bit_Mapping[bit]);
     					sub_blocks2_b[q][y][x]=((int)sub_blocks_b_DCT[q][y][x]) & (Bit_Mapping[bit]);
-          			}
+    					
+    				}
     				
     			}
     			
     		}
-    		
     		dequantize(sub_blocks2_r,sub_blocks2_r_q,quantization_number);
         	dequantize(sub_blocks2_g,sub_blocks2_g_q,quantization_number);
         	dequantize(sub_blocks2_b,sub_blocks2_b_q,quantization_number);
@@ -228,15 +228,8 @@ public class imageReader {
             
             array3d_to_img(sub_blocks_iDCT,img2);
             label2.setIcon(new ImageIcon(img2));
-            
-            try {
-				Thread.sleep(sleep_time);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-            
-    }
+    		
+    	}
         
     	
     }
@@ -247,19 +240,42 @@ public class imageReader {
     
 }
   
-   
 
 static void bit_mapping() {
 
 	Bit_Mapping=new int[]{
-			0x80000000,0xC0000000,0xE0000000,0xF0000000,
-			0xF8000000,0xFC000000,0xFE000000,0xFF000000,
-			0xFF800000,0xFFC00000,0xFFE00000,0xFFF00000,
-			0xFFF80000,0xFFFC0000,0xFFFE0000,0xFFFF0000,
-			0xFFFF8000,0xFFFFC000,0xFFFFE000,0xFFFFF000,
-			0xFFFFF800,0xFFFFFC00,0xFFFFFE00,0xFFFFFF00,
-			0xFFFFFF80,0xFFFFFFC0,0xFFFFFFE0,0xFFFFFFF0,
-			0xFFFFFFF8,0xFFFFFFFC,0xFFFFFFFE,0xFFFFFFFF
+			0x80000000,
+			0xC0000000,
+			0xE0000000,
+			0xF0000000,
+			0xF8000000,
+			0xFC000000,
+			0xFE000000,
+			0xFF000000,
+			0xFF800000,
+			0xFFC00000,
+			0xFFE00000,
+			0xFFF00000,
+			0xFFF80000,
+			0xFFFC0000,
+			0xFFFE0000,
+			0xFFFF0000,
+			0xFFFF8000,
+			0xFFFFC000,
+			0xFFFFE000,
+			0xFFFFF000,
+			0xFFFFF800,
+			0xFFFFFC00,
+			0xFFFFFE00,
+			0xFFFFFF00,
+			0xFFFFFF80,
+			0xFFFFFFC0,
+			0xFFFFFFE0,
+			0xFFFFFFF0,
+			0xFFFFFFF8,
+			0xFFFFFFFC,
+			0xFFFFFFFE,
+			0xFFFFFFFF
 	};
 	
 	
