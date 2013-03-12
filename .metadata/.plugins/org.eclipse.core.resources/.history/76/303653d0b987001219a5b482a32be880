@@ -18,9 +18,7 @@ public class imageReader {
    
    static int [][]Mapping;
    static int []Bit_Mapping;
-   static  double[] c = new double[8];
-//	initializeCoefficients(c);     
-
+   
    public static void main(String[] args) {
    	
 	String fileName = args[0];
@@ -29,7 +27,7 @@ public class imageReader {
 	int quantization_number=Integer.parseInt(args[1]);
 	width = 352;
 	height = 288;
-	initializeCoefficients(c);
+	
 
 	/*
 
@@ -412,8 +410,8 @@ static void array3d_to_img(double[][][] sub_blocks_DCT,BufferedImage img_temp)
 
 static void calculate_dct(double[][][] sub_blocks_each_channel, double[][][] sub_blocks_DCT) {
 	
-//	double[] c = new double[8];
-//	initializeCoefficients(c);     
+	double[] c = new double[8];
+	initializeCoefficients(c);     
 	for(int q=0;q<divide_size;q++)
 	{
 		 for (int u = 0; u <=7; u++) 
@@ -442,8 +440,8 @@ static void calculate_dct(double[][][] sub_blocks_each_channel, double[][][] sub
 
 static void calculate_idct(double[][][] sub_blocks_DCT, double[][][] sub_blocks_iDCT) {
 	
- //   double[] c = new double[8];
-//	initializeCoefficients(c);     
+    double[] c = new double[8];
+	initializeCoefficients(c);     
 	for(int q=0;q<divide_size;q++)
 	{	 
 		for (int x = 0; x <= 7; x++) 

@@ -7,6 +7,6 @@
 <listEntry value="1"/>
 </listAttribute>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="imageReader"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="image3.rgb 640 480"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="nimage2.rgb 6 2 3"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="JPEG_MPEG_COMPRESSOR"/>
 </launchConfiguration>

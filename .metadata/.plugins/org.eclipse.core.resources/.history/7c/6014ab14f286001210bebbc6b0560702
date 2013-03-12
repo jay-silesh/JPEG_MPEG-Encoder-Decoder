@@ -18,30 +18,29 @@ public class imageReader {
    
    static int [][]Mapping;
    static int []Bit_Mapping;
-   static  double[] c = new double[8];
-//	initializeCoefficients(c);     
-
+   
    public static void main(String[] args) {
    	
+/*
 	String fileName = args[0];
 	int case_no=Integer.parseInt(args[2]);
 	long sleep_time=Long.parseLong(args[3]);
 	int quantization_number=Integer.parseInt(args[1]);
 	width = 352;
 	height = 288;
-	initializeCoefficients(c);
-
-	/*
+	
+	*/
+	
 
 	int quantization_number=1;
 	int case_no=3;
 	long sleep_time=0;
-	String fileName="nimage4.rgb";
+	String fileName="nimage3.rgb";
 	width=352;
 	height=288;
 
 	System.out.println("File is "+fileName+"\tcase is : "+case_no+"\t Sleep is "+sleep_time+"\tQuant: "+quantization_number);
-	*/
+	
 	
 	divide_size=(width*height)/64;
 	double[][][]sub_blocks_ro= new double[divide_size][8][8];
@@ -90,16 +89,10 @@ public class imageReader {
 	
 			for(int x = 0; x < width; x++){
 		 
-			/*	byte a = 0;
+				byte a = 0;
 				byte r = bytes[ind];
 				byte g = bytes[ind+height*width];
-				byte b = bytes[ind+height*width*2]; */
-				
-				
-
-				short r = (short) (bytes[ind]&0xff) ;
-				short g = (short) ((bytes[ind+height*width]) & 0xff);
-				short b = (short) ((bytes[ind+height*width*2]) & 0xff); 
+				byte b = bytes[ind+height*width*2]; 
 				
 				int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
 				//int pix = ((a << 24) + (r << 16) + (g << 8) + b);
@@ -206,30 +199,28 @@ public class imageReader {
            	double[][][] sub_blocks2_g_q=new double[divide_size][8][8];
            	double[][][] sub_blocks2_b_q=new double[divide_size][8][8];
     		
-           	dequantize(sub_blocks_r_DCT,sub_blocks2_r_q,quantization_number);
-        	dequantize(sub_blocks_g_DCT,sub_blocks2_g_q,quantization_number);
-        	dequantize(sub_blocks_b_DCT,sub_blocks2_b_q,quantization_number);
-        	
-           	for(int q=0;q<divide_size;q++)
+    		for(int q=0;q<divide_size;q++)
     		{
     			for(int y=0;y<8;y++)
     			{
     				for(int x=0;x<8;x++)
     				{
-    					sub_blocks2_r[q][y][x]=((int)sub_blocks2_r_q[q][y][x]) & (Bit_Mapping[bit]);
-    					sub_blocks2_g[q][y][x]=((int)sub_blocks2_g_q[q][y][x]) & (Bit_Mapping[bit]);
-    					sub_blocks2_b[q][y][x]=((int)sub_blocks2_b_q[q][y][x]) & (Bit_Mapping[bit]);
+    					sub_blocks2_r[q][y][x]=((int)sub_blocks_r_DCT[q][y][x]) & (Bit_Mapping[bit]);
+    					sub_blocks2_g[q][y][x]=((int)sub_blocks_g_DCT[q][y][x]) & (Bit_Mapping[bit]);
+    					sub_blocks2_b[q][y][x]=((int)sub_blocks_b_DCT[q][y][x]) & (Bit_Mapping[bit]);
           			}
     				
     			}
     			
     		}
     		
-    		
+    		dequantize(sub_blocks2_r,sub_blocks2_r_q,quantization_number);
+        	dequantize(sub_blocks2_g,sub_blocks2_g_q,quantization_number);
+        	dequantize(sub_blocks2_b,sub_blocks2_b_q,quantization_number);
         	
-        	calculate_idct(sub_blocks2_r,sub_blocks_r_iDCT);
-            calculate_idct(sub_blocks2_g,sub_blocks_g_iDCT);
-            calculate_idct(sub_blocks2_b,sub_blocks_b_iDCT);
+        	calculate_idct(sub_blocks2_r_q,sub_blocks_r_iDCT);
+            calculate_idct(sub_blocks2_g_q,sub_blocks_g_iDCT);
+            calculate_idct(sub_blocks2_b_q,sub_blocks_b_iDCT);
             
             merge_3darrays(sub_blocks_r_iDCT,sub_blocks_g_iDCT,sub_blocks_b_iDCT,sub_blocks_iDCT);
             
@@ -337,9 +328,9 @@ static void merge_3darrays(double[][][] sub_blocks_r_DCT,double[][][] sub_blocks
 		{
 			for(x=0;x<8;x++)
 			{
-				short r =   (short) sub_blocks_r_DCT[q][y][x];
-				short g =   (short) sub_blocks_g_DCT[q][y][x];
-				short b =   (short) sub_blocks_b_DCT[q][y][x]; 
+				byte r =  (byte) sub_blocks_r_DCT[q][y][x];
+				byte g =  (byte) sub_blocks_g_DCT[q][y][x];
+				byte b =  (byte) sub_blocks_b_DCT[q][y][x]; 
 				int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
 				sub_blocks_DCT[q][y][x]=pix;
 			}
@@ -412,8 +403,8 @@ static void array3d_to_img(double[][][] sub_blocks_DCT,BufferedImage img_temp)
 
 static void calculate_dct(double[][][] sub_blocks_each_channel, double[][][] sub_blocks_DCT) {
 	
-//	double[] c = new double[8];
-//	initializeCoefficients(c);     
+	double[] c = new double[8];
+	initializeCoefficients(c);     
 	for(int q=0;q<divide_size;q++)
 	{
 		 for (int u = 0; u <=7; u++) 
@@ -442,8 +433,8 @@ static void calculate_dct(double[][][] sub_blocks_each_channel, double[][][] sub
 
 static void calculate_idct(double[][][] sub_blocks_DCT, double[][][] sub_blocks_iDCT) {
 	
- //   double[] c = new double[8];
-//	initializeCoefficients(c);     
+    double[] c = new double[8];
+	initializeCoefficients(c);     
 	for(int q=0;q<divide_size;q++)
 	{	 
 		for (int x = 0; x <= 7; x++) 
@@ -460,12 +451,12 @@ static void calculate_idct(double[][][] sub_blocks_DCT, double[][][] sub_blocks_
                 }
                 sum = sum * 0.25;                
                 
-                if(sum>255)
-                	sum=255;//Math.round(127);
-                else if(sum<0)
-                	sum=0;//Math.round(-128);
+                if(sum>127)
+                	sum=(byte)127;//Math.round(127);
+                else if(sum<-128)
+                	sum=(byte)-128;//Math.round(-128);
                 else
-                	sum=Math.round(sum);
+                	sum=(byte)Math.round(sum);
                 
                 sub_blocks_iDCT[q][x][y] = sum;
              }
@@ -528,7 +519,7 @@ static void calculate_idct(double[][][] sub_blocks_DCT, double[][][] sub_blocks_
 			{
 				for(x=0;x<8;x++)
 				{
-					sub_blocks_r_DCT[q][y][x]=Math.round(((sub_blocks_r_DCT[q][y][x]/(Math.pow(2, n)))));
+					sub_blocks_r_DCT[q][y][x]=((sub_blocks_r_DCT[q][y][x]/(Math.pow(2, n))));
 				}
 			}
 		}
